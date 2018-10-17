@@ -1,0 +1,45 @@
+#battleship-board {
+	display: inline-block;
+}
+
+h1 {
+	color: red;
+}
+
+.tiles {
+	margin: 0 2px;
+	height: 50px;
+	width: 50px;
+	border: 1px solid black;
+	display: inline-block;
+}
+
+.tiles:hover {
+	background: red;
+	cursor: pointer;
+}
+
+.tiles.dead {
+	background: grey;
+	pointer-events: none;
+}
+
+.tiles.selected {
+	background: blue;
+	pointer-events: none;
+}
+
+.tiles.guessed {
+	background: grey;
+	pointer-events: none;
+}
+
+.tiles.hit {
+	background: black;
+	pointer-events: none;
+}
+
+br {
+	height: 0;
+	margin: 0;
+}
