@@ -4,18 +4,26 @@ const shipLength = 3;
 
 var board = document.getElementById( 'battleship-board' );
 var message = document.getElementById( 'message' );
-var allTiles = [];
+var lastMove = document.getElementById( 'last-move' );
+// var allTiles = [];
 // set the variable for whether or not two humans are playing
 var twoHumans = true;
 
+// create the player Objects
 p1 = {
-	ships: [],
+	ships: {
+		one: [],
+		two: []
+	},
 	guesses: [],
 	hits: [],
 }
 
 p2 = {
-	ships: [],
+	ships: {
+		one: [],
+		two: []
+	},
 	guesses: [],
 	hits: [],
 }
@@ -34,7 +42,7 @@ p2Turn = false;
 			square.classList.add( 'tiles' );
 			square.setAttribute( 'id', i.toString() + j.toString() );
 			board.appendChild( square );
-			allTiles.push( square );
+			// allTiles.push( square );
 		}
 		// add a break every set # for a new row
 		board.innerHTML += '<br/>';
@@ -47,7 +55,6 @@ p2Turn = false;
 // check all tiles are there
 // console.log(allTiles);
 
-
 // now that tiles have been created, create variable that allows all tiles to be access
 var allTiles = document.getElementsByClassName( 'tiles' );
 
@@ -57,19 +64,22 @@ function selectTile( e ){
 	var selected = e.path[ 0 ];
 	selected.classList.add( 'selected' );
 
-	console.log( selected.id );
-	// we have access to the id of this element, so push to the array and cap at 6
-	// capping the id length prevents the board id itself from being pushed to the array
+	// console.log( selected.id );
+	// we have access to the id of this element, so push to the array and cap at ship length * 2
+	// capping the id length prevents the board id itself from being pushed to the array and causing issues
 	if ( selected.id.length === 2 ){
-		p1Turn ? p1["ships"].push( selected.id ) : p2["ships"].push( selected.id )
+		p1Turn ? 
+			( p1.ships.one.length < 3 ? checkIfValidTile( selected.id, p1.ships.one ) : checkIfValidTile( selected.id, p1.ships.two ) ) : 
+			( p2.ships.one.length.length < 3 ? p2.ships.one.length.push( selected.id ) : p2.ships.two.push( selected.id ) )
 	}
 
 	// check the length and array for the ships
-	console.log( 'p1Ships: ', p1[ "ships" ] );
-	console.log( 'p2Ships: ', p2[ "ships" ] );
+	// console.log( 'p1Ships 1: ', p1.ships.one.length );
+	// console.log( 'p1Ships 2: ', p1.ships.two.length );
+	// console.log( 'p2Ships: ', p2[ "ships" ] );
 
 	// check if it is Player 1's turn
-	if ( p1Turn && p1.ships.length === ( shipLength * 2 ) ) {
+	if ( p1Turn && ( p1.ships.one.length + p1.ships.two.length ) === ( shipLength * 2 ) ) {
 		clearTiles();
 		nextPlayerTurn();
 	} 
@@ -77,11 +87,12 @@ function selectTile( e ){
 	// check to see if two humans are playing or human v computer
 	if ( p2Turn ) {
 		if ( twoHumans ) {
-			p2.ships.length === (shipLength * 2) ? beginBattle() : ''
+			( p2.ships.one.length + p2.ships.two.length ) === (shipLength * 2) ? beginBattle() : ''
 		} else {
 			computerSelect();
 		}
 	}
+
 }
 
 
@@ -94,32 +105,37 @@ function guessTile( e ){
 	if ( guessedId.length === 2 ){
 		// This is the big conditional to see if the player has hit or missed.
 		p1Turn ? 
-			( p2.ships.includes( guessedId ) ? 
-				( 	message.innerHTML = 'p1 hit', 
+			( p2.ships.one.includes( guessedId ) || p2.ships.two.includes( guessedId ) ? 
+				( 	lastMove.innerHTML = 'p1 hit', 
 					p1.hits.push( guessedId ), 
-					p1.guesses.push( guessedId ) 
+					p1.guesses.push( guessedId ),
+					guessed.classList.add( 'hit' )
 				) : 
-				( 	message.innerHTML = 'p1 miss', 
-					p1.guesses.push( guessedId ) 
+				( 	lastMove.innerHTML = 'p1 miss', 
+					p1.guesses.push( guessedId ),
+					guessed.classList.add( 'guessed' )
 				) )
 			: 
-			( p1.ships.includes( guessedId ) ? 
-				( 	message.innerHTML = 'p2 hit', 
+			( p1.ships.one.includes( guessedId ) || p1.ships.two.includes( guessedId ) ? 
+				( 	lastMove.innerHTML = 'p2 hit', 
 					p2.hits.push( guessedId ), 
-					p2.guesses.push( guessedId ) 
+					p2.guesses.push( guessedId ),
+					guessed.classList.add( 'hit' )
 				) : 
-				( 	message.innerHTML = 'p2 miss', 
-					p2.guesses.push( guessedId ) 
+				( 	lastMove.innerHTML = 'p2 miss', 
+					p2.guesses.push( guessedId ),
+					guessed.classList.add( 'guessed' )
 				)
 			);
-		// p1Turn ? ( p1Guessed.push( guessed.id ), findMatch( p2Ships, p1Guessed, p1Hits ) ) : ( p2Guessed.push( guessed.id ), findMatch( p1Ships, p2Guessed, p2Hits ) )
+
+		nextPlayerTurn();
+		clearTiles();
+		showBoard();
 	}
 
-	guessed.classList.add( 'guessed' );
-
-	nextPlayerTurn();
-	clearTiles();
-	showBoard();
+	// conditional to see if the user has won a game
+	p1.hits.length === 6 || p2.hits.length === 6 ? ( alert( 'Congrats player' + ( p1.hits.length === 6 ? ' one, ' : ' two, ' ) + 'you have won!' ), resetGame() ) : '';
+	
 }
 
 
@@ -138,9 +154,27 @@ function nextPlayerTurn(){
 
 	// if player 1's turn - alert them
 	// if versus computer, alert that it is computer's turn
-	p1Turn ? alert( 'player 1 turn' ) : ( twoHumans ? alert( 'player 2 turn' ) : ( alert( 'computer turn' ), computerGuess() ) );
+	p1Turn ? message.innerHTML = 'player 1 turn' : ( twoHumans ? message.innerHTML = 'player 2 turn' : ( message.innerHTML = 'computer turn', computerGuess() ) )
 }
 
+
+function resetGame(){
+	p1.ships.one = [];
+	p1.ships.two = [];
+	p1.guesses = [];
+	p1.hits = [];
+	p2.ships.one = [];
+	p2.ships.two = [];
+	p2.guesses = [];
+	p2.hits = [];
+	board.addEventListener( 'click', selectTile );
+	board.removeEventListener( 'click', guessTile );
+	message.innerHTML = "Let's play again. Please begin by selecting 6 tiles (3 tiles per battleship)";
+	lastMove.innerHTML = '';
+	p1Turn = true;
+	p2Turn = false;
+	clearTiles();
+}
 
 // this function officially starts the game - clear the tiles, set back to player 1 and change the board to new
 function beginBattle(){
@@ -162,7 +196,25 @@ function computerGuess(){
 	console.log( "?" );
 }
 
+function checkIfValidTile( id, ship_array ){
+	// console.log( 'id ' + id );
+	// console.log( 'ship_array ' + ship_array );
 
+	var idd = id.split( "" );
+	var row = Number( idd[0] );
+	var column = Number( idd[1] );
+	console.log( "idd row ", row );
+	console.log( "idd column ", column );
+
+	row_arr = [];
+	column_arr = [];
+
+	
+	ship_array.push( id );
+
+	// console.log( 'ship_array ' + ship_array );
+	return true;
+}
 
 function showBoard(){
 	if ( p1Turn ){
@@ -186,33 +238,9 @@ function showBoard(){
 	}
 }
 
-
-var findMatch = function( haystack, arr, newarr ) {
-    return arr.some( function( v ) {
-        haystack.indexOf( v ) >= 0 ? newarr.push(v) : false;
-    });
-};
-
 // random element within the array
 Array.prototype.randomElement = function() {
     return this[Math.floor(Math.random() * this.length)]
 };
-
-
-// check the diff
-Array.prototype.diff = function(arr) {
-    var ret = [];
-    this.sort();
-    arr.sort();
-
-    for( var i = 0; i < this.length; i += 1 ) {
-        if( arr.indexOf( this[ i ] ) > -1 ){
-            ret.push( this[ i ] );
-        }
-    }
-    return ret;
-};
-
-
 
 
