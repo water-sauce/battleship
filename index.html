@@ -4,13 +4,16 @@
 	<title>BattleShip - Javascript Version</title>
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
 </head>
 <body>
 	<center>
-		<h1>BattleSHIPPPP</h1>
-		<p id="last-move"></p>
+		<h1>BattleShip</h1>
+		<a href="#" onClick="event.preventDefault(); selectGameType( this );" class="game-type" data-type="human">v. Human</a>
+		<a href="#" onClick="event.preventDefault(); selectGameType( this );" class="game-type" data-type="computer">v. Computer</a>
+		<p>Last Move: <span id="last-move"></span></p>
 		<hr />
-		<p id="message">Please begin by selecting 6 tiles (3 tiles per battleship)</p>
+		<p id="message"></p>
 		<div id="battleship-board"></div>
 	</center>
 
