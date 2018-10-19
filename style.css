@@ -1,45 +1,72 @@
-#battleship-board {
-	display: inline-block;
+body, html {
+	margin: 1rem 0;
+	height: 100%;
+	width: 100%;
 }
 
+/* HELPERS */
 .hide {
 	display: none;
 }
-
-h1 {
-	color: red;
-}
-
-.tiles {
-	margin: 0 2px;
-	height: 50px;
-	width: 50px;
-	border: 1px solid #02162b;
+.display-inline {
 	display: inline-block;
-	background: #325c80;
 }
 
-.tiles:hover {
-	background: white;
-	cursor: pointer;
-}
 
-.tiles.selected {
-	background: orange;
-	pointer-events: none;
-}
-
-.tiles.guessed {
-	background: grey;
-	pointer-events: none;
-}
-
-.tiles.hit {
-	background: red;
-	pointer-events: none;
+/* GENERAL */
+h1 {
+	margin: 1rem 0;
+	color: red;
 }
 
 br {
 	height: 0;
 	margin: 0;
 }
+p {
+	margin: 0 0 1rem !important;
+}
+
+/* GAME ELEMENTS */
+#battleship-board {
+	display: inline-block;
+}
+
+#game-options-wrapper {
+	display: inline-block;
+	float: right;
+}
+#message {
+	margin: 0 0 24px !important;
+}
+
+.tiles {
+	margin: 0 2px;
+	height: 50px;
+	width: 50px;
+	display: inline-block;
+	background: #325c80;
+	-webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
+}
+
+.tiles:hover {
+	background: #F7F7F7;
+	cursor: pointer;
+}
+
+.tiles.selected {
+	background: #FFA762;
+	pointer-events: none;
+}
+
+.tiles.guessed {
+	background: #A5A5A5;
+	pointer-events: none;
+}
+
+.tiles.hit {
+	background: #B53131;
+	pointer-events: none;
+}
+

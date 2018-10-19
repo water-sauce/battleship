@@ -1,10 +1,11 @@
 //
 // SET THE CONSTANTS THAT CAN CHANGE AND SCALE WITH THE GAME
 //
-const ROWS = 6;
-const COLUMNS = 6;
+const ROWS = 5;
+const COLUMNS = 5;
+// unfortunately, started building all functions only for 2 ships. This const must stay at 2.
 const SHIPS = 2;
-const SHIPLENGTH = 1;
+const SHIPLENGTH = 3;
 const TOTALHITS = SHIPLENGTH * SHIPS;
 
 var gameboard = document.getElementById( 'battleship-board' ),
@@ -18,8 +19,10 @@ var gameboard = document.getElementById( 'battleship-board' ),
 	hasBeenReset = false,
 	gameHasStarted = false,
 	acceptableArray = [],
+	// change seconds delay if you want to slow down turn pace
 	secondsDelay = 1000,
 	updatedArray = [],
+	computerGuessArray = [],
 	shipSunkCounter1 = 0,
 	shipSunkCounter2 = 0;
 
@@ -62,24 +65,22 @@ var playerTwo = new Player();
 // console.log(allTiles);
 
 
-
 // THIS FUNCTION CHANGES FROM HUMAN V HUMAN TO HUMAN V COMPUTER
 function selectGameType( e ){
-	e.id === "computer" ? ( twoHumans = false ) : '';
+	e.id === "computer" ? 
+		( twoHumans = false, message.innerHTML = "Please select first. Then, the computer will." ) : 
+		( twoHumans = true, message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles per battleship (" + TOTALHITS + " total)" );
 }
-
 
 
 // 
 // SET UP AND TILE FUNCTIONS
 // 
-
 // now that tiles have been created, create variable that allows all tiles to be accessed and selected
 var allTiles = document.getElementsByClassName( 'tiles' );
 
 // SELECT TILES TO REPRESENT BATTLESHIPS
 function selectTile( e ){
-	console.log( "select tile beginning being called" );
 	// this variable brings back the selected tile
 	var selected = e.path[ 0 ];
 
@@ -91,11 +92,12 @@ function selectTile( e ){
 			// check and see if first ship selected
 			( playerOne.ships[ 0 ].length < SHIPLENGTH ? 
 				checkIfValidTile( selected.id, playerOne.ships[ 0 ] ) : 
-				checkIfValidTile( selected.id, playerOne.ships[ 1 ], true ) 
+				checkIfValidTile( selected.id, playerOne.ships[ 1 ] ) 
 			) : 
-			( playerTwo.ships[ 0 ].length < SHIPLENGTH ? 
-				checkIfValidTile( selected.id, playerTwo.ships[ 0 ] ) : 
-				checkIfValidTile( selected.id, playerTwo.ships[ 1 ], true )
+			( playerTwo.ships[ 0 ].length < SHIPLENGTH ?
+				( hasBeenReset = true,
+				checkIfValidTile( selected.id, playerTwo.ships[ 0 ] ) ) : 
+				checkIfValidTile( selected.id, playerTwo.ships[ 1 ] )
 			)
 	}
 
@@ -103,10 +105,8 @@ function selectTile( e ){
 	// console.log( 'playerOneShips 1 length: ', playerOne.ships[ 0 ].length );
 
 	if ( playerOne.turn && ( playerOne.ships[ 0 ].length + playerOne.ships[ 1 ].length ) === ( SHIPLENGTH * SHIPS ) ) {
-		setTimeout(function() { 
-			clearTiles()
-			nextPlayerTurn()
-		}, secondsDelay );
+		clearTiles();
+		nextPlayerTurn();
 	} 
 
 	// check to see if two humans are playing or human v computer
@@ -121,21 +121,20 @@ function selectTile( e ){
 }
 
 
-
-
 function checkIfShipSunk( hitArray ){
 	counter = 0;
 
+	// if first ship sunk, then 
 	function shipSunk1(){
 		if ( shipSunkCounter1 === 0 ) {
-			alert( 'ship sunk!' );
+			alert( "A ship has been sunk!" );
 			shipSunkCounter1++;
 		}
 	}
 
 	function shipSunk2(){
 		if ( shipSunkCounter2 === 0 ) {
-			alert( 'ship sunk!' );
+			alert( "A ship has been sunk!" );
 			shipSunkCounter2++;
 		}
 	}
@@ -182,31 +181,31 @@ function guessTile( e, id ){
 		// This is the big conditional to see if the player has hit or missed.
 		playerOne.turn ? 
 			( playerTwo.ships[ 0 ].includes( guessedId ) || playerTwo.ships[ 1 ].includes( guessedId ) ? 
-				( 	lastMove.innerHTML = 'playerOne hit', 
+				( 	lastMove.innerHTML = "Player 1 has hit a ship", 
 					playerOne.hits.push( guessedId ),
 					playerOne.guesses.push( guessedId ),
-					square.classList.add( 'hit' ),
+					square.classList.add( "hit" ),
 					checkIfShipSunk( playerOne.hits )
 				) : 
-				( 	lastMove.innerHTML = 'playerOne miss', 
+				( 	lastMove.innerHTML = "Player 1 has missed", 
 					playerOne.guesses.push( guessedId ),
-					square.classList.add( 'guessed' )
+					square.classList.add( "guessed" )
 				) )
 			: 
 			( playerOne.ships[ 0 ].includes( guessedId ) || playerOne.ships[ 1 ].includes( guessedId ) ? 
-				( 	lastMove.innerHTML = 'playerTwo hit', 
+				( 	lastMove.innerHTML = twoHumans ? "Player 2 has hit a ship" : "Computer has hit a ship", 
 					playerTwo.hits.push( guessedId ), 
 					playerTwo.guesses.push( guessedId ),
-					square.classList.add( 'hit' ),
+					square.classList.add( "hit" ),
 					checkIfShipSunk( playerTwo.hits )
 				) : 
-				( 	lastMove.innerHTML = 'playerTwo miss', 
+				( 	lastMove.innerHTML = twoHumans ? "Player 2 has missed" : "Computer has missed", 
 					playerTwo.guesses.push( guessedId ),
-					square.classList.add( 'guessed' )
+					square.classList.add( "guessed" )
 				)
 			);
 
-		gameboard.removeEventListener( 'click', guessTile );
+		gameboard.removeEventListener( "click", guessTile );
 		setTimeout(function() { 
 			nextPlayerTurn()
 			clearTiles()
@@ -215,7 +214,7 @@ function guessTile( e, id ){
 	}
 
 	// conditional to see if the user has won a game
-	playerOne.hits.length === TOTALHITS || playerTwo.hits.length === TOTALHITS ? ( alert( 'Congrats player' + ( playerOne.hits.length === TOTALHITS ? ' one, ' : ' two, ' ) + 'you have won!' ), setTimeout( resetGame, secondsDelay ) ) : '';
+	playerOne.hits.length === TOTALHITS || playerTwo.hits.length === TOTALHITS ? ( alert( "Congrats Player" + ( playerOne.hits.length === TOTALHITS ? " 1, " : " 2, " ) + "you have won!" ), setTimeout( resetGame, secondsDelay ) ) : "";
 	
 }
 
@@ -232,32 +231,16 @@ function createAcceptableArray( id ){
 		x = Number( idd[ 0 ] ),
 		y = Number( idd[ 1 ] );
 		
-	y - 1 < 0 ? '' : acceptableArray.push( ( x ).toString() + ( y - 1 ).toString() );
-	y + 1 >= COLUMNS ? '' : acceptableArray.push( ( x ).toString() + ( y + 1 ).toString() );
-	x - 1 < 0 ? '' : acceptableArray.push( ( x - 1 ).toString() + ( y ).toString() );
-	x + 1 >= ROWS ? '' : acceptableArray.push( ( x + 1 ).toString() + ( y ).toString() );
-
-	// console.log( 'acceptableArray ', acceptableArray );
-
-	// THIS FUNCTION TO GET ALL THE ACCEPTABLE SQUARES WITHIN RANGE
-	// for ( var i = 0; i < SHIPLENGTH; i++ ){
-	// 	xMinus = y - i < 0 ? 0 : y - i;
-	// 	// call the const columns here
-	// 	xPlus = y + i > COLUMNS ? COLUMNS : y + i;
-	// 	yMinus = x - i < 0 ? 0 : x - i;
-	// 	// call the const rows here
-	// 	yPlus = x + i > ROWS ? ROWS : x + i;
-
-	// 	acceptableArray.push( ( x ).toString() + xMinus.toString() );
-	// 	acceptableArray.push( ( x ).toString() + xPlus.toString() );
-	// 	acceptableArray.push( yMinus.toString() + ( y ).toString() );
-	// 	acceptableArray.push( yPlus.toString() + ( y ).toString() );
-	// }
+	y - 1 < 0 ? "" : acceptableArray.push( ( x ).toString() + ( y - 1 ).toString() );
+	y + 1 >= COLUMNS ? "" : acceptableArray.push( ( x ).toString() + ( y + 1 ).toString() );
+	x - 1 < 0 ? "" : acceptableArray.push( ( x - 1 ).toString() + ( y ).toString() );
+	x + 1 >= ROWS ? "" : acceptableArray.push( ( x + 1 ).toString() + ( y ).toString() );
 }
 
 
 // THIS FUNCTION IS CREATED AFTER 2 VALUES HAVE BEEN SELECTED FOR A BATTLESHIP
 function newAcceptableArray( id ){
+	// reset the arrays
 	acceptableArray = [];
 	updatedArray = [];
 	var xArr = [],
@@ -274,17 +257,8 @@ function newAcceptableArray( id ){
 		var x = xArr[ 0 ].toString();
 		yArr.sort( function( a, b ){ return a - b } );
 		// if below min or too high, skip. else, add to array
-		yArr[ 0 ] - 1 < 0 ? '' : updatedArray.push( x + ( yArr[ 0 ] - 1 ).toString() );
-		yArr[ yArr.length - 1 ] + 1 >= ROWS ? '' : updatedArray.push( x + ( yArr[ yArr.length - 1 ] + 1 ).toString() );
-		
-
-		// TO GET ALL THE POSSIBLE VALUES OUT OF ORDER
-		// for ( var i = 0; i < ( SHIPLENGTH - 1 ); i++ ){
-			// var min = ( yArr[ 0 ] - 1 ).toString(),
-			// 	max = ( yArr[ 1 ] + 1 ).toString();
-			// updatedArray.push( x + min );
-			// updatedArray.push( x + max );
-		// }
+		yArr[ 0 ] - 1 < 0 ? "" : updatedArray.push( x + ( yArr[ 0 ] - 1 ).toString() );
+		yArr[ yArr.length - 1 ] + 1 >= ROWS ? "" : updatedArray.push( x + ( yArr[ yArr.length - 1 ] + 1 ).toString() );
 	}
 
 	// compare y values and see if it's on the same column
@@ -292,8 +266,8 @@ function newAcceptableArray( id ){
 		var y = yArr[ 0 ].toString();
 		xArr.sort( function( a, b ){ return a - b } );
 		// if below min or too high, skip. else, add to array
-		xArr[ 0 ] - 1 < 0 ? '' : updatedArray.push( ( xArr[ 0 ] - 1 ).toString() + y );
-		xArr[ xArr.length - 1 ] + 1 >= COLUMNS ? '' : updatedArray.push( ( xArr[ xArr.length - 1 ] + 1 ).toString() + y );
+		xArr[ 0 ] - 1 < 0 ? "" : updatedArray.push( ( xArr[ 0 ] - 1 ).toString() + y );
+		xArr[ xArr.length - 1 ] + 1 >= COLUMNS ? "" : updatedArray.push( ( xArr[ xArr.length - 1 ] + 1 ).toString() + y );
 
 
 		// TO GET ALL THE POSSIBLE VALUES OUT OF ORDER
@@ -309,42 +283,43 @@ function newAcceptableArray( id ){
 }
 
 
-function checkIfValidTile( tileId, shipArray, newShip = false ){	
-
+function checkIfValidTile( tileId, shipArray ){
 	// reset to clear acceptableArray and 
-	if ( newShip && !hasBeenReset ) {
+	if ( !hasBeenReset ) {
 		acceptableArray = [];
 		hasBeenReset = true;
 	} 
 
+	console.log( "shipArray ", shipArray );
+
 	if( shipArray.length >= 2 && SHIPLENGTH > 2 ){
 		newAcceptableArray( shipArray );
-		if ( updatedArray.includes( tileId ) ) {
+		if ( updatedArray.includes( tileId )  ) {
 			shipArray.push( tileId );
-			document.getElementById( tileId ).classList.add( 'selected' );
+			document.getElementById( tileId ).classList.add( "selected" );
 		}
 	}
 
 	if ( shipArray.length === 1 && acceptableArray.includes( tileId ) ) {
 		shipArray.push( tileId );
-		document.getElementById( tileId ).classList.add( 'selected' );
+		document.getElementById( tileId ).classList.add( "selected" );
 		newAcceptableArray( shipArray );
 	} 
 
 	if ( shipArray.length === 0 ) {
 		// push first variable to the array and create the acceptable array based on first selection
 		shipArray.push( tileId );
-		document.getElementById( tileId ).classList.add( 'selected' );
+		document.getElementById( tileId ).classList.add( "selected" );
 		createAcceptableArray( tileId );
 	}
 
-	// console.log( 'current shipArray ', shipArray );
+	// console.log( "current shipArray ", shipArray );
 }
 
 // THIS FUNCTION CAN BE CALLED TO REMOVE ANY STYLING BETWEEN TURNS
 function clearTiles(){
 	for ( var i = 0; i < allTiles.length; i++ ) {
-		allTiles[ i ].classList.remove( 'selected', 'guessed', 'hit' );
+		allTiles[ i ].classList.remove( "selected", "guessed", "hit" );
 	}
 }
 
@@ -355,28 +330,33 @@ function getRandomTile(){
 
 function computerSelectTiles(){
 	var random = getRandomTile();
-	var random2 = getRandomTile();
 
-	random !== random2 ? '' : ( random2 = getRandomTile() );
-
-	for ( var i = 0; i < SHIPLENGTH; i++ ){
-		checkIfValidTile( random, playerTwo.ships[ i ], true );
+	for ( var i = 0; i < SHIPS; i++ ){
+		if( i === 1 ) {
+			random = getRandomTile();
+			if ( playerTwo.ships[ 0 ].includes( random ) ){
+				random = getRandomTile();
+			}
+		}
+		checkIfValidTile( random, playerTwo.ships[ i ] );
 		checkIfValidTile( acceptableArray[ Math.floor( Math.random() * acceptableArray.length ) ], playerTwo.ships[ i ] );
 		checkIfValidTile( updatedArray[ Math.floor( Math.random() * updatedArray.length ) ], playerTwo.ships[ i ] );
 		hasBeenReset = false;
 	}
 
-	( playerTwo.ships[ 0 ].length + playerTwo.ships[ 1 ].length ) === ( SHIPLENGTH * SHIPS ) ? beginBattle() : '';
+	( playerTwo.ships[ 0 ].length + playerTwo.ships[ 1 ].length ) === ( SHIPLENGTH * SHIPS ) ? beginBattle() : "";
 }
 
 
+// COMPUTER GUESS FUNCTION. GET A RANDOM TILE AND IF NOT IN THE COMPUTER GUESS ARRAY, GUESS IT.
 function computerGuess(){
-	let random_arr = [];
-
 	if ( gameHasStarted === true ){
 		var random = getRandomTile();
-		if ( !random_arr.includes( random ) ){
+		if ( !computerGuessArray.includes( random ) ){
+			computerGuessArray.push( random );
 			guessTile( null, random );
+		} else {
+			computerGuess();
 		}
 	}
 }
@@ -388,25 +368,23 @@ function computerGuess(){
 
 // THIS FUNCTION TOGGLES BETWEEN PLAYER 1 AND PLAYER 2
 function nextPlayerTurn(){
-	console.log( 'next Player being called' );
 	playerOne.turn ^= true;
 	playerTwo.turn ^= true;
 
 	// reset for tile selection
-	gameHasStarted ? gameboard.addEventListener( 'click', guessTile ) : '';
+	gameHasStarted ? gameboard.addEventListener( "click", guessTile ) : "";
 
 	// if player 1's turn - alert them
 	// if versus computer, alert that it is computer's turn
-	playerOne.turn ? message.innerHTML = 'player 1 turn' : ( twoHumans ? message.innerHTML = 'player 2 turn' : ( ( message.innerHTML = 'computer turn' ), computerGuess() ) )
+	playerOne.turn ? message.innerHTML = "Player 1 turn" : ( twoHumans ? message.innerHTML = "Player 2 turn" : ( ( message.innerHTML = "Computer's turn" ), computerGuess() ) )
 }
 
 // THIS FUNCTION RESETS THE GAME AND CLEARS ALL OBJECT DATA
 function resetGame(){
-	console.log( 'beginning of reset game being called' );
 	clearTiles();
 	gameHasStarted = false;
-	gameboard.addEventListener( 'click', selectTile );
-	gameboard.removeEventListener( 'click', guessTile );
+	gameboard.addEventListener( "click", selectTile );
+	gameboard.removeEventListener( "click", guessTile );
 
 	for ( var i = 0; i < SHIPS; i++ ){
 		playerOne.ships[ i ] = [];
@@ -416,28 +394,24 @@ function resetGame(){
 	playerOne.hits = [];
 	playerTwo.guesses = [];
 	playerTwo.hits = [];
-
 	playerOne.turn = true;
 	playerTwo.turn = false;
-	
-	message.innerHTML = "Let's start. Please begin by selecting " + TOTALHITS + " tiles (" + SHIPLENGTH + " tiles per battleship)";
-	lastMove.innerHTML = '--';
+	message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles per battleship (" + TOTALHITS + " total)";
+	lastMove.innerHTML = "--";
 
-	console.log( 'reset game being called' );
-	
+	// console.log( 'reset game being called' );
 }
 
 // THIS FUNCTION OFFICIALLY STARTS THE GAME
 // clear the tiles, set back to player 1 and change the board to blank canvas
 function beginBattle(){
-	alert( "let's start the game" );
+	alert( "Let's start the game" );
 	gameHasStarted = true;
 	clearTiles();
-	console.log( "begin battle being called" );
 	nextPlayerTurn();
 	// remove the event listener for selectTile and add guessTile listener
-	gameboard.removeEventListener( 'click', selectTile );
-	gameboard.addEventListener( 'click', guessTile );
+	gameboard.removeEventListener( "click", selectTile );
+	gameboard.addEventListener( "click", guessTile );
 };
 
 
@@ -446,30 +420,26 @@ function showBoard(){
 	if ( playerOne.turn ){
 		// show the guessed spots for playerOne
 		for ( var i = 0; i < playerOne.guesses.length; i++ ){
-			document.getElementById( playerOne.guesses[i] ).classList.add( 'guessed' );
+			document.getElementById( playerOne.guesses[i] ).classList.add( "guessed" );
 		}
 		// show the hit spots for playerOne
 		for ( var i = 0; i < playerOne.hits.length; i++ ){
-			document.getElementById( playerOne.hits[i] ).classList.add( 'hit' );
+			document.getElementById( playerOne.hits[i] ).classList.add( "hit" );
 		}
 	} else {
 		// show the guessed spots for playerTwo
 		for ( var i = 0; i < playerTwo.guesses.length; i++ ){
-			document.getElementById( playerTwo.guesses[i] ).classList.add( 'guessed' );
+			document.getElementById( playerTwo.guesses[i] ).classList.add( "guessed" );
 		}
 		// show the hit spots for playerOne
 		for ( var i = 0; i < playerTwo.hits.length; i++ ){
-			document.getElementById( playerTwo.hits[i] ).classList.add( 'hit' );
+			document.getElementById( playerTwo.hits[i] ).classList.add( "hit" );
 		}
 	}
 
-	twoHumans ? '' : ( playerTwo.turn ? gameboard.removeEventListener( 'click', guessTile ) : gameboard.addEventListener( 'click', guessTile ) )
+	twoHumans ? "" : ( playerTwo.turn ? gameboard.removeEventListener( "click", guessTile ) : gameboard.addEventListener( "click", guessTile ) )
 }
 
-// APPLY RANDOM ELEMENT TO ARRAY PROTOTYPE
-Array.prototype.randomElement = function() {
-    return this[ Math.floor( Math.random() * this.length ) ]
-};
 
 // CALL ONCE TO START THE GAME
 resetGame();

@@ -7,17 +7,20 @@
 
 </head>
 <body>
-	<center>
+	<div class="container">
 		<h1>BattleShip</h1>
-		<div id="game-options-wrapper">
-			<a href="#" onClick="event.preventDefault(); selectGameType( this );" class="game-type" id="human">v. Human</a>
+		<a href="#" onClick="event.preventDefault(); resetGame();" class="display-inline">New Game</a>
+		<div class="text-align-right" id="game-options-wrapper">
+			<a href="#" onClick="event.preventDefault(); selectGameType( this );" class="game-type" id="human">v. Human</a>  |  
 			<a href="#" onClick="event.preventDefault(); selectGameType( this );" class="game-type" id="computer">v. Computer</a>
 		</div>
-		<p>Last Move: <span id="last-move"></span></p>
 		<hr />
-		<p id="message"></p>
-		<div id="battleship-board"></div>
-	</center>
+		<center>
+			<p>Last Move: <span id="last-move"></span></p>
+			<p id="message"></p>
+			<div id="battleship-board"></div>
+		</center>
+	</div>
 
 	<script src="app.js"></script>
 </body>
