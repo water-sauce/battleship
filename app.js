@@ -1,28 +1,25 @@
 //
 // SET THE CONSTANTS THAT CAN CHANGE AND SCALE WITH THE GAME
 //
-const ROWS = 5;
-const COLUMNS = 5;
-// unfortunately, started built some functions to only account for 2 ships. This const must stay at 2.
+const ROWS = 6;
+const COLUMNS = 6;
 const SHIPS = 2;
 const SHIPLENGTH = 3;
 const TOTALHITS = SHIPLENGTH * SHIPS;
 
-var gameboard = document.getElementById( 'battleship-board' ),
-	message = document.getElementById( 'message' ),
-	lastMove = document.getElementById( 'last-move' ),
-	gameOptions = document.getElementById( 'game-options-wrapper' ),
+var gameboard = document.getElementById( "battleship-board" ),
+	message = document.getElementById( "message" ),
+	lastMove = document.getElementById( "last-move" ),
+	gameOptions = document.getElementById( "game-options-wrapper" ),
 	allTiles = [],
 	// set the variable for whether or not two humans are playing
 	twoHumans = true,
 	gameHasStarted = false,
-	acceptableArray = [],
 	// change seconds delay if you want to slow down pace of play
 	secondsDelay = 1000,
+	acceptableArray = [],
 	updatedArray = [],
-	computerGuessArray = [],
-	shipSunkCounter1 = 0,
-	shipSunkCounter2 = 0;
+	computerGuessArray = [];
 
 // CREATE THE PLAYER OBJECT
 function Player( ships, guesses, hits, turn ){
@@ -30,10 +27,12 @@ function Player( ships, guesses, hits, turn ){
     this.guesses = [];
     this.hits = [];
     this.turn = true;
+    this.shipNumber = 0;
+    this.counter = 0;
 }
 
-var playerOne = new Player();
-var playerTwo = new Player();
+var playerOne = new Player(),
+	playerTwo = new Player();
 
 // 
 // CREATE THE BOARD
@@ -43,23 +42,21 @@ var playerTwo = new Player();
 ( function(){
 	for ( var i = 0; i < ROWS; i++ ) {
 		for ( var j = 0; j < COLUMNS; j++ ) {
-			var square = document.createElement( 'div' );
-			square.classList.add( 'tiles' );
-			square.setAttribute( 'id', i.toString() + j.toString() );
+			var square = document.createElement( "div" );
+			square.classList.add( "tiles" );
+			square.setAttribute( "id", i.toString() + j.toString() );
 			gameboard.appendChild( square );
 		}
 		// add a break every set # for a new row
-		gameboard.innerHTML += '<br/>';
+		gameboard.innerHTML += "<br/>";
 	}
 	// add our board event listener to see which tiles have been clicked
-	gameboard.addEventListener( 'click', selectTile );
+	gameboard.addEventListener( "click", selectTile );
 
 }() );
 
 // check all tiles are there
 // console.log(allTiles);
-console.log( playerOne );
-console.log( playerTwo );
 
 
 // THIS FUNCTION CHANGES GAMEPLAY FROM HUMAN V HUMAN TO HUMAN V COMPUTER
@@ -74,45 +71,54 @@ function selectGameType( e ){
 // SET UP AND TILE FUNCTIONS
 // 
 // now that tiles have been created, create variable that allows all tiles to be accessed and selected
-var allTiles = document.getElementsByClassName( 'tiles' );
+var allTiles = document.getElementsByClassName( "tiles" );
 
-
+// 
+// HELPER FUNCTIONS
+// 
 // GET TOTAL TILES PLACED FOR SHIPS BY PLAYER
-function totalShips( player ){
+function totalShips( currentPlayer ){
 	var amount = 0;
-	for( var i = 0; i < SHIPS; i++ ){
-		amount += player.ships[ i ].length;
-	}
 
+	for( var i = 0; i < SHIPS; i++ ){
+		amount += currentPlayer.ships[ i ].length;
+	}
 	return amount;
+}
+
+// GET CURRENT PLAYER
+function getCurrentPlayer(){
+	return playerOne.turn ? playerOne : playerTwo;
+}
+// GET PASSIVE PLAYER
+function getPassivePlayer(){
+	return !playerOne.turn ? playerOne : playerTwo;
 }
 
 
 // SELECT TILES TO REPRESENT BATTLESHIPS
 function selectTile( e ){
 	// this variable brings back the selected tile
-	var selected = e.path[ 0 ];
+	var selected = e.path[ 0 ],
+		player = getCurrentPlayer();
 
+	// console.log( "current player ", player );
+	
 	// we have access to the id of this element, so push to the array and cap at ship length * total no of ships
-	// capping the id length prevents the board id itself from being pushed to the array and causing issues
-	if ( selected.id !== 'battleship-board' ){
-		// if player 1's turn, 
-		playerOne.turn ? 
-			// check and see if first ship selected
-			( playerOne.ships[ 0 ].length < SHIPLENGTH ? 
-				checkIfValidTile( selected.id, playerOne.ships[ 0 ] ) : 
-				checkIfValidTile( selected.id, playerOne.ships[ 1 ] ) 
-			) : 
-			( playerTwo.ships[ 0 ].length < SHIPLENGTH ?
-				checkIfValidTile( selected.id, playerTwo.ships[ 0 ] ) : 
-				checkIfValidTile( selected.id, playerTwo.ships[ 1 ] )
-			)
+	// prevent the board itself from being pushed to the array and causing issues
+	if ( selected.id !== "battleship-board" ){
+		if ( player.ships[ player.shipNumber ].length < SHIPLENGTH ){
+			checkIfValidTile( selected.id, player.ships[ player.shipNumber ] );
+			if ( player.ships[ player.shipNumber ].length === SHIPLENGTH ){
+				player.shipNumber++;
+			}
+		}
 	}
 
 	// check the length and array for the ships
 	// console.log( 'playerOneShips 1 length: ', playerOne.ships[ 0 ].length );
 
-	if ( playerOne.turn && ( totalShips( playerOne ) === ( SHIPLENGTH * SHIPS ) ) ) {
+	if ( playerOne.turn && ( totalShips( playerOne ) === TOTALHITS ) ) {
 		clearTiles();
 		nextPlayerTurn();
 	} 
@@ -120,7 +126,7 @@ function selectTile( e ){
 	// check to see if two humans are playing or human v computer
 	if ( playerTwo.turn ) {
 		if ( twoHumans ) {
-			totalShips( playerTwo ) === ( SHIPLENGTH * SHIPS ) ? beginBattle() : ''
+			totalShips( playerTwo ) === TOTALHITS ? beginBattle() : ""
 		} else {
 			computerSelectTiles();
 		}
@@ -128,37 +134,34 @@ function selectTile( e ){
 
 }
 
-
+// FUNCTION TO SEE IF A SHIP HAS BEEN SUNK
 function checkIfShipSunk( hitArray ){
-	counter = 0;
+	var count = 0,
+		alertCount = 0,
+		currentPlayer = getCurrentPlayer(),
+		otherPlayer = getPassivePlayer();
 
-	// function to see if the 
-	if ( hitArray.length >= SHIPLENGTH ) {
-		if ( playerOne.turn ) {
-			for( var i = 0; i < SHIPS; i++ ){
-				for ( var j = 0; j < hitArray.length; j++ ){
-					if ( playerTwo.ships[ i ].includes( hitArray[ j ] ) ){
-						counter++;
-					}
-					if ( ( counter === SHIPLENGTH ) && shipSunkCounter1 === 0 ){
-						alert( "A ship has been sunk!" );
-						shipSunkCounter1++;
-					}
+	// function to see if the ship is sunk
+	if ( hitArray.length >= SHIPLENGTH ) { 
+
+		for( var i = 0; i < SHIPS; i++ ){
+			for ( var j = 0; j < hitArray.length; j++ ){
+				if ( otherPlayer.ships[ i ].includes( hitArray[ j ] ) ){
+					count++;
 				}
-				counter = 0;
 			}
-		} else {
-			for( var i = 0; i < SHIPS; i++ ){
-				for ( var j = 0; j < hitArray.length; j++ ){
-					if ( playerOne.ships[ i ].includes( hitArray[ j ] ) ){
-						counter++;
-					}
-					if ( ( counter === SHIPLENGTH ) && shipSunkCounter2 === 0 ){
-						alert( "A ship has been sunk!" );
-						shipSunkCounter2++;
-					}
-				}
-				counter = 0;
+			if ( count === SHIPLENGTH ){
+				alertCount++;
+			}
+			// reset per ship loop
+			count = 0;
+
+			if ( alertCount - currentPlayer.counter > 0 ){
+				// console.log( "alertCount ", alertCount );
+				alert( "A ship has been sunk!" );
+				lastMove.innerHTML = "Player " + ( currentPlayer === playerOne ? "1" : "2" ) + " has sunk a ship"; 
+				currentPlayer.counter++;
+				
 			}
 		}
 	}
@@ -166,46 +169,42 @@ function checkIfShipSunk( hitArray ){
 
 
 // THIS IS WHEN THE "GUESSING" PORTION OF THE GAME BEGINS
+// passing either clicked tile or computer
 function guessTile( e, id ){
 	var guessed = e ? e.path[ 0 ] : id.toString(),
 		guessedId = e ? guessed.id : id.toString(),
-		square = document.getElementById( guessedId );
+		square = document.getElementById( guessedId ),
+		isInEnemyArray = false,
+		currentPlayer = getCurrentPlayer(),
+		otherPlayer = getPassivePlayer();
 
 	// push to guess array
-	if ( guessedId.length === 2 ){
-		// This is the big conditional to see if the player has hit or missed.
-		playerOne.turn ? 
-			( playerTwo.ships[ 0 ].includes( guessedId ) || playerTwo.ships[ 1 ].includes( guessedId ) ? 
-				( 	lastMove.innerHTML = "Player 1 has hit a ship", 
-					playerOne.hits.push( guessedId ),
-					playerOne.guesses.push( guessedId ),
-					square.classList.add( "hit" ),
-					checkIfShipSunk( playerOne.hits )
-				) : 
-				( 	lastMove.innerHTML = "Player 1 has missed", 
-					playerOne.guesses.push( guessedId ),
-					square.classList.add( "guessed" )
-				) )
-			: 
-			( playerOne.ships[ 0 ].includes( guessedId ) || playerOne.ships[ 1 ].includes( guessedId ) ? 
-				( 	lastMove.innerHTML = twoHumans ? "Player 2 has hit a ship" : "Computer has hit a ship", 
-					playerTwo.hits.push( guessedId ), 
-					playerTwo.guesses.push( guessedId ),
-					square.classList.add( "hit" ),
-					checkIfShipSunk( playerTwo.hits )
-				) : 
-				( 	lastMove.innerHTML = twoHumans ? "Player 2 has missed" : "Computer has missed", 
-					playerTwo.guesses.push( guessedId ),
-					square.classList.add( "guessed" )
-				)
-			);
+	if ( guessedId !== "battleship-board" ){
+
+		for ( var i = 0; i < SHIPS; i++ ){
+			if ( otherPlayer.ships[ i ].includes( guessedId ) ){
+				isInEnemyArray = true;
+			}
+		}
+
+		if ( isInEnemyArray ){
+			lastMove.innerHTML = "Player " + ( currentPlayer === playerOne ? "1" : "2" ) + " has hit a ship"; 
+			currentPlayer.hits.push( guessedId );
+			currentPlayer.guesses.push( guessedId );
+			square.classList.add( "hit" );
+			checkIfShipSunk( currentPlayer.hits );
+		} else { 	
+			lastMove.innerHTML = "Player " + ( currentPlayer === playerOne ? "1" : "2" ) + " has missed";
+			currentPlayer.guesses.push( guessedId );
+			square.classList.add( "guessed" );
+		}
 
 		gameboard.removeEventListener( "click", guessTile );
 
 		setTimeout(function() { 
 			nextPlayerTurn()
 			clearTiles()
-			showBoard()
+			showPlayerBoard()
 		}, secondsDelay ); 
 	}
 
@@ -339,7 +338,7 @@ function computerSelectTiles(){
 	}
 
 	// if ships selected, start game
-	totalShips( playerTwo ) === ( SHIPLENGTH * SHIPS ) ? beginBattle() : "";
+	totalShips( playerTwo ) === ( TOTALHITS ) ? beginBattle() : "";
 }
 
 
@@ -351,6 +350,7 @@ function computerGuess(){
 			computerGuessArray.push( random );
 			guessTile( null, random );
 		} else {
+			// guess again if already guessed
 			computerGuess();
 		}
 	}
@@ -380,13 +380,20 @@ function resetGame(){
 		playerOne.ships[ i ] = [];
 		playerTwo.ships[ i ] = [];
 	}
+
 	playerOne.guesses = [];
 	playerOne.hits = [];
+	playerOne.shipNumber = 0;
+	playerOne.counter = 0;
+	playerOne.turn = true;
+
 	playerTwo.guesses = [];
 	playerTwo.hits = [];
-	playerOne.turn = true;
+	playerTwo.shipNumber = 0;
+	playerTwo.counter = 0;
 	playerTwo.turn = false;
-	message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles per battleship (" + TOTALHITS + " total)";
+
+	message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles each for your " + SHIPS + " battleships";
 	lastMove.innerHTML = "--";
 	gameHasStarted = false;
 	gameboard.addEventListener( "click", selectTile );
@@ -409,7 +416,7 @@ function beginBattle(){
 
 
 // SHOW THE BOARD FROM THE PREVIOUS ROUND
-function showBoard(){
+function showPlayerBoard(){
 	if ( playerOne.turn ){
 		// show the guessed spots for playerOne
 		for ( var i = 0; i < playerOne.guesses.length; i++ ){
@@ -430,6 +437,7 @@ function showBoard(){
 		}
 	}
 
+	// if computer's turn to select, remove the guessTile ability
 	!twoHumans && playerTwo.turn ? gameboard.removeEventListener( "click", guessTile ) : gameboard.addEventListener( "click", guessTile ) 
 }
 

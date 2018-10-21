@@ -1,6 +1,35 @@
+/* GENERAL */
 body, html {
 	height: 100%;
 	width: 100%;
+}
+h1 {
+	margin: 1rem 0;
+	color: red;
+}
+br {
+	height: 0;
+	margin: 0;
+}
+p {
+	font-size: 16px;
+	margin: 0 0 1rem !important;
+}
+header {
+	padding: 1rem;
+	background: #1f3950;
+	color: #FFFFFF;
+}
+a.button {
+	padding: 6px 10px;
+	border: 1px solid #FFFFFF;
+	border-radius: 50px;
+}
+header a {
+	color: #FFFFFF;
+}
+header a:hover {
+	color: #96b8d9;
 }
 
 /* HELPERS */
@@ -11,61 +40,53 @@ body, html {
 	display: inline-block;
 }
 
-
-/* GENERAL */
-h1 {
-	margin: 1rem 0;
-	color: red;
-}
-
-br {
-	height: 0;
-	margin: 0;
-}
-p {
-	margin: 0 0 1rem !important;
-}
-
 /* GAME ELEMENTS */
 #battleship-board {
 	display: inline-block;
+	background-color: #2d2d2d;
+	padding: 4px 2px 0;
 }
-
 #game-options-wrapper {
 	display: inline-block;
 	float: right;
 }
+.game-container {
+	margin: 1rem;
+}
+.game-container .container {
+	padding: 3rem 1rem;
+	background: rgba(255,255,255,0.5);
+}
+.button-new-game:hover {
+	background-color: #6a9ecc;
+	color: #FFFFFF;
+	text-decoration: none;
+}
 #message {
 	margin: 0 0 24px !important;
 }
-
 .tiles {
-	margin: 0 2px;
+	margin: 0 2.5px;
 	height: 50px;
 	width: 50px;
 	display: inline-block;
-	background: #325c80;
+	background: #47769e;
 	-webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
     box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
 }
-
 .tiles:hover {
 	background: #F7F7F7;
 	cursor: pointer;
 }
-
 .tiles.selected {
 	background: #FFA762;
 	pointer-events: none;
 }
-
 .tiles.guessed {
 	background: #A5A5A5;
 	pointer-events: none;
 }
-
 .tiles.hit {
 	background: #B53131;
 	pointer-events: none;
 }
-
