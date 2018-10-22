@@ -3,9 +3,13 @@ body, html {
 	height: 100%;
 	width: 100%;
 }
+body {
+	background-color: #2d2d2d;
+	color: #FFFFFF;
+}
 h1 {
-	margin: 1rem 0;
-	color: red;
+	margin: 1.5rem 0;
+	display: inline-block;
 }
 br {
 	height: 0;
@@ -13,23 +17,34 @@ br {
 }
 p {
 	font-size: 16px;
-	margin: 0 0 1rem !important;
+	margin: 0 0 1rem;
 }
 header {
-	padding: 1rem;
-	background: #1f3950;
-	color: #FFFFFF;
+	padding: 2rem 1rem 2rem;
+	background: #85adce;
 }
 a.button {
-	padding: 6px 10px;
+	padding: 8px 16px;
 	border: 1px solid #FFFFFF;
 	border-radius: 50px;
 }
 header a {
+	text-align: center;
 	color: #FFFFFF;
+	letter-spacing: 0.5px;
 }
 header a:hover {
 	color: #96b8d9;
+}
+header a.selected {
+	text-decoration: none;
+	background: #ff853c;
+	color: #FFFFFF;
+	border: 1px solid #ff853c;
+	font-weight: bold;
+}
+#human {
+	margin-bottom: 1rem;
 }
 
 /* HELPERS */
@@ -43,11 +58,9 @@ header a:hover {
 /* GAME ELEMENTS */
 #battleship-board {
 	display: inline-block;
-	background-color: #2d2d2d;
 	padding: 4px 2px 0;
 }
 #game-options-wrapper {
-	display: inline-block;
 	float: right;
 }
 .game-container {
@@ -55,15 +68,13 @@ header a:hover {
 }
 .game-container .container {
 	padding: 3rem 1rem;
-	background: rgba(255,255,255,0.5);
 }
-.button-new-game:hover {
-	background-color: #6a9ecc;
-	color: #FFFFFF;
-	text-decoration: none;
+.game-type {
+	display: block;
 }
-#message {
-	margin: 0 0 24px !important;
+
+p#move {
+	margin: 0 0 28px !important;
 }
 .tiles {
 	margin: 0 2.5px;
@@ -73,6 +84,7 @@ header a:hover {
 	background: #47769e;
 	-webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
     box-shadow: 0 2px 3px rgba(0, 0, 0, .35);
+    border-radius: 3px;
 }
 .tiles:hover {
 	background: #F7F7F7;

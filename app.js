@@ -61,9 +61,13 @@ var playerOne = new Player(),
 
 // THIS FUNCTION CHANGES GAMEPLAY FROM HUMAN V HUMAN TO HUMAN V COMPUTER
 function selectGameType( e ){
+	var compButton = document.getElementById( "computer" ),
+		humanButton = document.getElementById( "human" );
+
 	e.id === "computer" ? 
-		( twoHumans = false, message.innerHTML = "Please select first. Then, the computer will." ) : 
-		( twoHumans = true, message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles per battleship (" + TOTALHITS + " total)" );
+		( twoHumans = false, message.innerHTML = "Please select first. Then, the computer will.", compButton.classList.add( "selected" ), humanButton.classList.remove( "selected" )
+		 ) : 
+		( twoHumans = true, message.innerHTML = "Let's start. Please begin by selecting " + SHIPLENGTH + " tiles per battleship (" + TOTALHITS + " total)", compButton.classList.remove( "selected" ), humanButton.classList.add( "selected" ) );
 }
 
 
@@ -96,8 +100,10 @@ function getPassivePlayer(){
 }
 
 
+// selectTile( "<div class" );
 // SELECT TILES TO REPRESENT BATTLESHIPS
 function selectTile( e ){
+	console.log( e );
 	// this variable brings back the selected tile
 	var selected = e.path[ 0 ],
 		player = getCurrentPlayer();

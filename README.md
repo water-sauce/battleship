@@ -6,5 +6,5 @@ This project was created for a coding challenge and is written in vanilla Javasc
 	- The number of rows and columns.
 	- The number of ships
 	- The length of the ships
-- To restart the game, simply click on the "New Game" button
+- To restart the game, simply click one of the two buttons at the top
 
